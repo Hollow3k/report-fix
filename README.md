@@ -75,12 +75,17 @@ the prompts in `engine/prompts.py` are the whole interface.
 - The audit trail is in-browser for the demo; production would persist it
   server-side with faculty identity.
 - Question and solution panes - and the After pane for those fields -
-  render the stored HTML+MathML raw, because the math has to display.
-  `<script>` inserted via innerHTML does not execute, but inline event
-  handlers would; the demo trusts question-bank content and faculty input.
-  Production would sanitize against an allowlist (MathML + a small tag set)
-  before rendering. Student comments, evidence, replies and audit notes are
-  always escaped.
+  render stored HTML+MathML, because the math has to display. Every string
+  that reaches those panes (stored content and faculty edits alike) passes
+  through an allowlist sanitizer in console/app.js: it keeps the bank's
+  formatting tags and the MathML vocabulary, drops executable or embed
+  content (script, iframe, object, embed, svg, forms, media) with its
+  contents, strips every on* event-handler attribute and srcdoc, removes
+  javascript:/vbscript:/data: URLs, and filters dangerous CSS in style
+  attributes. Residual limits: sanitization is client-side only, so a
+  production deployment must re-validate and re-sanitize server-side before
+  anything is written back; the console does not claim production safety.
+  Student comments, evidence, replies and audit notes are always escaped.
 - Faculty edits update the proposed patch in-session: the After pane shows
   an "edited by faculty" marker and the audit records both versions.
   The edit can only replace the value of the already-proposed field (named
