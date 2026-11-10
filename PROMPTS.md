@@ -103,8 +103,8 @@ What changed between versions and why:
 - **Double-proof rule for answer keys.** An answer-key change is the only
   edit that silently changes who gets marks. It auto-applies only when two
   independent derivations (blind solve + the stored solution's own math)
-  agree. Six keys were auto-fixed under this rule; anything short of it
-  would wait for faculty.
+  agree. Five keys were auto-fixed under this rule; anything short of it
+  waits for faculty - including R034, where no valid option exists at all.
 - **Authored content is never auto-written.** Missing option D (R009/R010)
   and the duplicated option (R015) went to faculty even where a plausible
   value exists, because new option text is authored content. The console
