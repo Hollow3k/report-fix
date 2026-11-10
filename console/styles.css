@@ -208,3 +208,8 @@ body {
   .diff-cols { grid-template-columns: minmax(0, 1fr); }
   .stats { display: none; }
 }
+
+.edited-badge {
+  font-size: .68rem; font-weight: 600; color: #fff; background: var(--accent);
+  padding: .1rem .45rem; border-radius: 999px; vertical-align: middle;
+}
