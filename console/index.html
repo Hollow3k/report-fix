@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report → Fix · Faculty Review Console</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">R→F</span>
+    <div>
+      <h1>Report → Fix</h1>
+      <p class="tagline">Faculty review console · student error reports · <span title="Per the assignment brief, the console loads precomputed triage results; the pipeline and prompts ship in the repo.">precomputed results</span></p>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="layout">
+  <aside class="queue" id="queue">
+    <div class="queue-head">
+      <h2>Review queue</h2>
+      <p class="queue-note" title="Faculty-review items first (a human is the bottleneck), correctness-affecting repairs before cosmetic ones, then by number of students reporting.">Ordered by urgency <span class="info-dot">?</span></p>
+    </div>
+    <div class="filter-row" id="filters">
+      <button class="filter active" data-filter="all">All</button>
+      <button class="filter" data-filter="faculty_review">Needs you</button>
+      <button class="filter" data-filter="auto_apply">Auto-applied</button>
+      <button class="filter" data-filter="no_change">Closed</button>
+    </div>
+    <nav id="queueList" class="queue-list"></nav>
+  </aside>
+
+  <main class="case" id="case">
+    <div class="empty-state" id="emptyState">
+      <p>Select a case from the queue.</p>
+    </div>
+    <article id="caseView" class="case-view hidden">
+      <div class="case-head">
+        <div class="case-meta" id="caseMeta"></div>
+        <div class="report-strip" id="reportStrip"></div>
+      </div>
+
+      <section class="card question-card">
+        <h3 class="card-title">Question as stored</h3>
+        <div class="question-body" id="questionBody"></div>
+        <div class="stored-answer" id="storedAnswer"></div>
+      </section>
+
+      <section class="card verdict-card" id="verdictCard">
+        <div class="verdict-row">
+          <span class="chip verdict-chip" id="verdictChip"></span>
+          <span class="chip repair-chip" id="repairChip"></span>
+          <span class="chip route-chip" id="routeChip"></span>
+          <span class="confidence" id="confidence"></span>
+        </div>
+        <p class="evidence" id="evidence"></p>
+        <p class="double-proof hidden" id="doubleProof">✓ Double proof on record: independent solve + stored solution agree (required for auto-applying answer-key changes).</p>
+      </section>
+
+      <section class="card diff-card hidden" id="diffCard">
+        <h3 class="card-title">Proposed change <span class="diff-field" id="diffField"></span></h3>
+        <div class="diff-cols">
+          <div class="diff-pane before">
+            <h4>Before</h4>
+            <div class="diff-content" id="diffBefore"></div>
+          </div>
+          <div class="diff-pane after">
+            <h4>After</h4>
+            <div class="diff-content" id="diffAfter"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card reply-card">
+        <h3 class="card-title">What the student sees</h3>
+        <blockquote id="studentReply"></blockquote>
+      </section>
+
+      <section class="card solution-card">
+        <h3 class="card-title">Stored solution</h3>
+        <div class="solution-body" id="solutionBody"></div>
+      </section>
+
+      <section class="card error-history hidden" id="errorHistoryCard">
+        <h3 class="card-title">Error history</h3>
+        <ul id="errorHistory"></ul>
+      </section>
+
+      <div class="action-bar" id="actionBar">
+        <button class="btn approve" id="btnApprove">Approve <kbd>A</kbd></button>
+        <button class="btn edit" id="btnEdit">Edit &amp; approve <kbd>E</kbd></button>
+        <button class="btn reject" id="btnReject">Reject <kbd>R</kbd></button>
+        <span class="action-status" id="actionStatus"></span>
+      </div>
+
+      <section class="card audit-card">
+        <h3 class="card-title">Audit trail</h3>
+        <ul id="auditTrail" class="audit-trail"></ul>
+      </section>
+    </article>
+  </main>
+</div>
+
+<div class="edit-modal hidden" id="editModal">
+  <div class="edit-dialog">
+    <h3>Edit before approving</h3>
+    <p class="edit-hint" id="editHint"></p>
+    <textarea id="editArea" rows="8"></textarea>
+    <div class="edit-actions">
+      <button class="btn approve" id="editSave">Save &amp; approve</button>
+      <button class="btn ghost" id="editCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
