@@ -202,8 +202,9 @@ body {
 .edit-actions { display: flex; gap: .6rem; margin-top: .8rem; }
 
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
-  .queue { border-right: 0; border-bottom: 1px solid var(--line); }
-  .diff-cols { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .queue { border-right: 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .case { min-width: 0; }
+  .diff-cols { grid-template-columns: minmax(0, 1fr); }
   .stats { display: none; }
 }
