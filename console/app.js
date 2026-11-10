@@ -231,11 +231,18 @@
   renderStats();
   renderQueue();
   // deep link: #R011 opens that case; otherwise open the most urgent one
-  const fromHash = location.hash.replace("#", "");
-  if (fromHash && casesById[fromHash]) {
-    selectReport(fromHash);
-  } else if (DATA.queueOrder.length) {
+  const openFromHash = () => {
+    const id = location.hash.replace("#", "");
+    if (id && casesById[id]) {
+      selectReport(id);
+      return true;
+    }
+    return false;
+  };
+  if (!openFromHash() && DATA.queueOrder.length) {
     const first = byQuestion[DATA.queueOrder[0]];
     selectReport((first.find((m) => m.route === "faculty_review") || first[0]).reportId);
   }
+  // follow in-place hash changes (a link opened while the console is already up)
+  window.addEventListener("hashchange", openFromHash);
 })();
