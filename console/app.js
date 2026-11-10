@@ -28,6 +28,71 @@
   let currentReport = null;
   let filter = "all";
 
+  /* ---------- HTML sanitization ----------
+     Question, solution and diff panes must render stored HTML + MathML, so
+     escaping is not an option there. sanitizeHtml is an allowlist filter:
+     it keeps the formatting tags the bank uses and the MathML vocabulary,
+     drops executable/embed content (script, iframe, object, embed, svg,
+     forms, media, ...) with its contents, unwraps any other unknown tag,
+     removes every on* event-handler attribute, srcdoc, unsafe URL schemes
+     (javascript:, vbscript:, data:, file:) in link-bearing attributes, and
+     style values containing expression/url/import/binding constructs.
+     Exposed on window so the live build can be verified directly. */
+  const SANITIZE_DROP = new Set([
+    "script", "style", "iframe", "object", "embed", "link", "meta", "base",
+    "form", "input", "button", "textarea", "select", "option", "svg",
+    "template", "frame", "frameset", "applet", "audio", "video", "source",
+    "track", "canvas", "noscript", "maction", "annotation-xml",
+  ]);
+  const SANITIZE_ALLOW = new Set([
+    // inline + block formatting the bank uses
+    "h1", "h2", "h3", "h4", "p", "br", "hr", "b", "i", "em", "strong", "u",
+    "s", "sub", "sup", "span", "div", "ol", "ul", "li", "blockquote",
+    "code", "pre", "table", "thead", "tbody", "tr", "td", "th", "caption",
+    // MathML vocabulary (no maction / annotation-xml - interactive/embed)
+    "math", "mstyle", "mrow", "mi", "mo", "mn", "ms", "mtext", "mspace",
+    "mfrac", "msqrt", "mroot", "msub", "msup", "msubsup", "munder",
+    "mover", "munderover", "mtable", "mtr", "mtd", "mpadded", "mphantom",
+    "menclose", "semantics", "annotation",
+  ]);
+  const SANITIZE_CSS_BAD = /expression|url\s*\(|javascript|vbscript|behavior|-moz-binding|@import/i;
+  const SANITIZE_BAD_SCHEME = /^\s*(javascript|vbscript|data|file)\s*:/i;
+  const SANITIZE_URL_ATTR = /^(href|src|xlink:href|formaction|action|poster|background|data)$/;
+
+  function sanitizeHtml(html) {
+    const doc = new DOMParser().parseFromString(String(html), "text/html");
+    const root = document.createElement("div");
+    const build = (src, dst) => {
+      for (const node of [...src.childNodes]) {
+        if (node.nodeType === 3) {
+          dst.appendChild(document.createTextNode(node.nodeValue));
+          continue;
+        }
+        if (node.nodeType !== 1) continue; // comments etc. dropped
+        const tag = node.tagName.toLowerCase();
+        if (SANITIZE_DROP.has(tag)) continue; // drop with contents
+        if (!SANITIZE_ALLOW.has(tag)) { build(node, dst); continue; } // unwrap
+        const el = document.createElement(tag);
+        for (const attr of [...node.attributes]) {
+          const name = attr.name.toLowerCase();
+          const val = attr.value;
+          if (name.startsWith("on") || name === "srcdoc") continue;
+          if (name === "style") {
+            if (!SANITIZE_CSS_BAD.test(val)) el.setAttribute("style", val);
+            continue;
+          }
+          if (SANITIZE_URL_ATTR.test(name) && SANITIZE_BAD_SCHEME.test(val)) continue;
+          el.setAttribute(attr.name, val);
+        }
+        build(node, el);
+        dst.appendChild(el);
+      }
+    };
+    build(doc.body, root);
+    return root.innerHTML;
+  }
+  window.sanitizeHtml = sanitizeHtml; // exposed for live verification
+
   const $ = (id) => document.getElementById(id);
 
   /* ---------- header stats ---------- */
@@ -88,7 +153,7 @@
       el.onclick = () => selectReport(el.dataset.rid);
     });
 
-    $("questionBody").innerHTML = c.questionHtml;
+    $("questionBody").innerHTML = sanitizeHtml(c.questionHtml);
     const ans = Array.isArray(c.storedAnswer) ? c.storedAnswer.join(", ") : c.storedAnswer;
     $("storedAnswer").innerHTML = `Stored answer key: <b>${esc(String(ans))}</b>`;
 
@@ -125,7 +190,7 @@
     }
 
     $("studentReply").textContent = c.studentReply;
-    $("solutionBody").innerHTML = c.solutionHtml || "<em>No stored solution.</em>";
+    $("solutionBody").innerHTML = c.solutionHtml ? sanitizeHtml(c.solutionHtml) : "<em>No stored solution.</em>";
 
     const eh = $("errorHistoryCard");
     if (c.errorHistory && c.errorHistory.length) {
@@ -142,7 +207,7 @@
 
   function renderDiffContent(el, field, value) {
     if (field === "question" || field === "solution") {
-      el.innerHTML = value; // stored HTML + MathML renders natively
+      el.innerHTML = sanitizeHtml(value); // stored HTML + MathML, sanitized
     } else {
       el.textContent = value;
     }
