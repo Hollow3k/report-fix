@@ -119,6 +119,7 @@
       $("diffField").textContent = "";
       $("diffBefore").innerHTML = `<p>No safe automatic edit exists for this repair.</p>`;
       $("diffAfter").innerHTML = `<p>Needs a human: ${esc(c.repairLabel || c.repair)}</p>`;
+      document.querySelector("#diffCard .diff-pane.after h4").textContent = "After";
     } else {
       dc.classList.add("hidden");
     }
