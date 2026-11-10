@@ -74,6 +74,11 @@ the prompts in `engine/prompts.py` are the whole interface.
   database - a real deployment would wrap them in a migration with rollback.
 - The audit trail is in-browser for the demo; production would persist it
   server-side with faculty identity.
+- Faculty edits update the proposed patch in-session: the After pane shows
+  an "edited by faculty" marker and the audit records both versions.
+  Production would persist the edited patch and re-validate it against the
+  repair's allowed fields server-side. Cases with no proposed edit (human-only
+  repairs) record the faculty note without pretending to patch.
 - Suggested option text for R009/R010 (missing option D) is flagged, not
   applied: authored content is never auto-written.
 - R034 (Waves assertion/reason) has no valid option as written - both the
