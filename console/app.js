@@ -112,6 +112,8 @@
       $("diffField").textContent = "· " + c.diff.field;
       renderDiffContent($("diffBefore"), c.diff.field, c.diff.before);
       renderDiffContent($("diffAfter"), c.diff.field, c.diff.after);
+      document.querySelector("#diffCard .diff-pane.after h4").innerHTML =
+        "After" + (c.diff.facultyEdited ? ' <span class="edited-badge">edited by faculty</span>' : "");
     } else if (c.repair) {
       dc.classList.remove("hidden");
       $("diffField").textContent = "";
@@ -188,13 +190,33 @@
     const modal = $("editModal");
     modal.classList.remove("hidden");
     $("editHint").textContent = c.diff
-      ? `Editing the proposed "${c.diff.field}" replacement. Approving records your version in the audit trail.`
-      : "No automatic edit was proposed; record the change you would make.";
+      ? `Editing the proposed "${c.diff.field}" replacement - the only field this repair may touch. Saving updates the After pane and records both versions in the audit trail.`
+      : "No automatic edit exists for this case. Record the change you would make; applying it stays with faculty - authored content is never auto-written.";
     $("editArea").value = c.diff ? String(c.diff.after) : (c.edit ? JSON.stringify(c.edit, null, 2) : "");
     $("editSave").onclick = () => {
       const v = $("editArea").value.trim();
-      modal.classList.add("hidden");
-      decide(c, "edited", v.length > 220 ? v.slice(0, 220) + "…" : `faculty edit: ${v}`);
+      if (c.diff) {
+        if (!v) {
+          $("editHint").textContent = "Replacement can not be empty for an auto-appliable fix - reject the case instead if the proposal is wrong.";
+          return;
+        }
+        modal.classList.add("hidden");
+        const orig = String(c.diff.after);
+        if (v === orig) {
+          decide(c, "approved", "faculty reviewed the proposed replacement unchanged");
+          return;
+        }
+        c.diff.after = v;
+        c.diff.facultyEdited = true;
+        renderDiffContent($("diffAfter"), c.diff.field, c.diff.after);
+        document.querySelector("#diffCard .diff-pane.after h4").innerHTML =
+          'After <span class="edited-badge">edited by faculty</span>';
+        const snip = (s) => (s.length > 100 ? s.slice(0, 100) + "…" : s);
+        decide(c, "edited", `faculty changed ${c.diff.field}: "${snip(orig)}" -> "${snip(v)}"`);
+      } else {
+        modal.classList.add("hidden");
+        decide(c, "edited", v.length > 220 ? v.slice(0, 220) + "…" : `faculty note (no auto-edit exists; applying stays with faculty): ${v}`);
+      }
     };
     $("editCancel").onclick = () => modal.classList.add("hidden");
   }
