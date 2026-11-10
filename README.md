@@ -74,8 +74,17 @@ the prompts in `engine/prompts.py` are the whole interface.
   database - a real deployment would wrap them in a migration with rollback.
 - The audit trail is in-browser for the demo; production would persist it
   server-side with faculty identity.
+- Question and solution panes - and the After pane for those fields -
+  render the stored HTML+MathML raw, because the math has to display.
+  `<script>` inserted via innerHTML does not execute, but inline event
+  handlers would; the demo trusts question-bank content and faculty input.
+  Production would sanitize against an allowlist (MathML + a small tag set)
+  before rendering. Student comments, evidence, replies and audit notes are
+  always escaped.
 - Faculty edits update the proposed patch in-session: the After pane shows
   an "edited by faculty" marker and the audit records both versions.
+  The edit can only replace the value of the already-proposed field (named
+  in the modal); the field itself is fixed by the pipeline's guard output.
   Production would persist the edited patch and re-validate it against the
   repair's allowed fields server-side. Cases with no proposed edit (human-only
   repairs) record the faculty note without pretending to patch.
